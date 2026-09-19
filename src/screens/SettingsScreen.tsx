@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { ChevronRight, Database, GraduationCap, RotateCcw, Volume2 } from 'lucide-react-native';
 import { useApp } from '@/store/AppContext';
 import { services } from '@/config';
+import { GenderPicker } from '@/components/GenderPicker';
 import { GuideCard } from '@/components/GuideCard';
 import { Header } from '@/components/Header';
 import { LanguagePicker } from '@/components/LanguagePicker';
@@ -43,7 +44,7 @@ function ServiceRow({ label, on }: { label: string; on: boolean }) {
 }
 
 export function SettingsScreen() {
-  const { t, profile, updateProfile, voiceGuide, setVoiceGuide, navigate, loadSampleData, resetApp } = useApp();
+  const { t, profile, updateProfile, voiceGuide, setVoiceGuide, demoMode, setDemoData, navigate, resetApp } = useApp();
 
   const confirmReset = () => {
     Alert.alert(t.resetApp, t.resetConfirm, [
@@ -60,6 +61,7 @@ export function SettingsScreen() {
       <View className="gap-3">
         <Field placeholder={t.yourNamePlaceholder} value={profile.name} onChangeText={(name) => updateProfile({ name })} autoCapitalize="words" />
         <Field placeholder={t.yourCraftPlaceholder} value={profile.craft} onChangeText={(craft) => updateProfile({ craft })} />
+        <GenderPicker />
       </View>
 
       <SectionLabel className="mt-7">{t.language}</SectionLabel>
@@ -91,12 +93,25 @@ export function SettingsScreen() {
         <Divider inset={16} />
         <ServiceRow label={t.speechToText} on={services.speechToText} />
         <Divider inset={16} />
-        <ServiceRow label={t.photoCleanup} on={services.studio} />
+        <ServiceRow label={t.photoCleanup} on={services.studio || demoMode} />
       </Card>
 
       <SectionLabel className="mt-7">{t.data}</SectionLabel>
       <Card>
-        <Row icon={Database} title={t.loadSample} hint={t.loadSampleHint} onPress={loadSampleData} />
+        <Row
+          icon={Database}
+          title={t.loadSample}
+          hint={t.loadSampleHint}
+          right={
+            <Switch
+              value={demoMode}
+              onValueChange={setDemoData}
+              trackColor={{ false: colors.paper300, true: colors.leaf500 }}
+              thumbColor={colors.white}
+              ios_backgroundColor={colors.paper300}
+            />
+          }
+        />
         <Divider inset={50} />
         <Row icon={RotateCcw} title={t.resetApp} hint={t.resetAppHint} onPress={confirmReset} danger />
       </Card>

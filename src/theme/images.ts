@@ -14,6 +14,10 @@ import emptyProductsImg from '../../assets/images/app/empty-products.jpg';
 import emptyOrdersImg from '../../assets/images/app/empty-orders.jpg';
 import cameraTipImg from '../../assets/images/app/camera-tip.jpg';
 import successCelebrationImg from '../../assets/images/app/success-celebration.jpg';
+import artisanMaleImg from '../../assets/images/app/artisan-male.png';
+import artisanFemaleImg from '../../assets/images/app/artisan-female.png';
+// Demo mode only: stands in for the studio result when the image model is off.
+import demoStudioImg from '../../assets/images/demo/studio-result.jpg';
 
 export const images = {
   onboardingHero: onboardingHeroImg,
@@ -30,7 +34,25 @@ export const images = {
   emptyOrders: emptyOrdersImg,
   cameraTip: cameraTipImg,
   successCelebration: successCelebrationImg,
+  artisanMale: artisanMaleImg,
+  artisanFemale: artisanFemaleImg,
+  demoStudio: demoStudioImg,
 } as const;
+
+/** Every bundled illustration, for preloading at startup so screens never show a blank frame. */
+export const allImages = [
+  images.onboardingHero,
+  images.onboardingProfile,
+  ...images.tutorial,
+  images.tutorialDone,
+  images.emptyProducts,
+  images.emptyOrders,
+  images.cameraTip,
+  images.successCelebration,
+  images.artisanMale,
+  images.artisanFemale,
+  images.demoStudio,
+];
 
 /** Background colour baked into the illustrations, so frames around them blend in. */
 export const ILLUSTRATION_BG = '#F2EFE0';

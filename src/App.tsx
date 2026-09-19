@@ -1,6 +1,7 @@
 import '../global.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Easing, View } from 'react-native';
+import { Asset } from 'expo-asset';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -21,6 +22,7 @@ import { NotoSansOriya_600SemiBold } from '@expo-google-fonts/noto-sans-oriya/60
 import { NotoSansOriya_700Bold } from '@expo-google-fonts/noto-sans-oriya/700Bold';
 import { AppProvider, useApp } from '@/store/AppContext';
 import { STATUS_BAR_COLOR } from '@/theme/colors';
+import { allImages } from '@/theme/images';
 import type { ScreenName } from '@/types';
 import { TabBar } from '@/components/TabBar';
 import { OnboardingScreen } from '@/screens/OnboardingScreen';
@@ -95,7 +97,23 @@ function Router() {
   );
 }
 
+/** Decoded once at startup so illustrations appear instantly on every screen. */
+function usePreloadedImages() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    Asset.loadAsync(allImages)
+      .catch(() => undefined)
+      .finally(() => !cancelled && setReady(true));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return ready;
+}
+
 export default function App() {
+  usePreloadedImages();
   const [fontsLoaded] = useFonts({
     Fraunces_600SemiBold,
     NotoSans_400Regular,

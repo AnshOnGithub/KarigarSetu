@@ -3,11 +3,13 @@ import { config, providers } from '@/config';
 import { getLanguageInfo } from '@/i18n/languages';
 import type { Language } from '@/types';
 import { createInteraction, outputText } from './gemini';
-import { photoToBase64 } from './image';
+import { photoToBase64OrNull } from './image';
 
 export interface GeneratedListing {
   title: string;
   description: string;
+  titleHi: string;
+  descriptionHi: string;
   localDescription: string;
   highlights: string[];
   category: string;
@@ -19,15 +21,17 @@ export interface GeneratedListing {
 const LISTING_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['title', 'description', 'local_description', 'highlights', 'category', 'suggested_price_inr', 'price_reason'],
+  required: ['title', 'description', 'title_hi', 'description_hi', 'local_description', 'highlights', 'category', 'suggested_price_inr', 'price_reason'],
   properties: {
     title: { type: 'string', description: 'Buyer-facing English product title, 4-9 words.' },
     description: { type: 'string', description: 'Buyer-facing English description, 50-90 words.' },
+    title_hi: { type: 'string', description: 'The title in Hindi (Devanagari), natural for Indian buyers, not a word-for-word transliteration.' },
+    description_hi: { type: 'string', description: 'The description in Hindi (Devanagari), 50-90 words.' },
     local_description: { type: 'string', description: "The same description in the artisan's language and script." },
     highlights: { type: 'array', items: { type: 'string' }, description: 'Three short English selling points.' },
     category: { type: 'string', description: 'Marketplace category, e.g. Home Decor, Apparel, Jewellery.' },
     suggested_price_inr: { type: 'integer', description: 'Typical retail price in INR for comparable handmade items.' },
-    price_reason: { type: 'string', description: "One sentence in the artisan's language explaining the price." },
+    price_reason: { type: 'string', description: 'One sentence explaining the price, written in the artisan language named in the user message (not English, unless that is their language).' },
   },
 } as const;
 
@@ -47,6 +51,7 @@ function getClient() {
 const SYSTEM_PROMPT =
   'You write marketplace listings for Indian handmade products sold on ONDC, GeM and B2B channels. ' +
   "Use only facts from the photo and the artisan's words; never invent materials, sizes or certifications. " +
+  'Write SEO-friendly copy: put the craft name, material and product type early in the title and naturally in the description. ' +
   'Write warmly and plainly, without hype or emojis. Price suggestions should reflect real Indian retail prices for comparable handmade goods.';
 
 interface ListingInput {
@@ -59,6 +64,8 @@ interface ListingInput {
 interface RawListing {
   title: string;
   description: string;
+  title_hi: string;
+  description_hi: string;
   local_description: string;
   highlights: string[];
   category: string;
@@ -82,6 +89,8 @@ function toListing(parsed: RawListing, source: GeneratedListing['source']): Gene
   return {
     title: parsed.title,
     description: parsed.description,
+    titleHi: parsed.title_hi ?? '',
+    descriptionHi: parsed.description_hi ?? '',
     localDescription: parsed.local_description,
     highlights: (parsed.highlights ?? []).slice(0, 3),
     category: parsed.category,
@@ -100,10 +109,11 @@ export async function generateListing(input: ListingInput): Promise<GeneratedLis
 
 async function generateWithClaude(input: ListingInput): Promise<GeneratedListing> {
   const content: Anthropic.Beta.BetaContentBlockParam[] = [];
-  if (input.photoUri) {
+  const photo = await photoToBase64OrNull(input.photoUri);
+  if (photo) {
     content.push({
       type: 'image',
-      source: { type: 'base64', media_type: 'image/jpeg', data: await photoToBase64(input.photoUri) },
+      source: { type: 'base64', media_type: 'image/jpeg', data: photo },
     });
   }
   content.push({ type: 'text', text: userText(input) });
@@ -127,11 +137,12 @@ async function generateWithClaude(input: ListingInput): Promise<GeneratedListing
 }
 
 async function generateWithGemini(input: ListingInput): Promise<GeneratedListing> {
+  const geminiPhoto = await photoToBase64OrNull(input.photoUri);
   const response = await createInteraction({
     model: config.geminiTextModel,
     system_instruction: SYSTEM_PROMPT,
     input: [
-      ...(input.photoUri ? [{ type: 'image' as const, mime_type: 'image/jpeg', data: await photoToBase64(input.photoUri) }] : []),
+      ...(geminiPhoto ? [{ type: 'image' as const, mime_type: 'image/jpeg', data: geminiPhoto }] : []),
       { type: 'text', text: userText(input) },
     ],
     generation_config: { thinking_level: 'low' },
@@ -152,6 +163,8 @@ export function localListing(transcript: string): GeneratedListing {
   return {
     title,
     description: clean,
+    titleHi: '',
+    descriptionHi: '',
     localDescription: clean,
     highlights: ['Handmade by the artisan', 'Made in India', 'Each piece is unique'],
     category: 'Handicrafts',

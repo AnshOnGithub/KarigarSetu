@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ImagePlus, RotateCcw, X } from 'lucide-react-native';
 import { useApp } from '@/store/AppContext';
@@ -11,12 +11,18 @@ import { Header } from '@/components/Header';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { colors } from '@/theme/colors';
-import { images } from '@/theme/images';
+import { ILLUSTRATION_BG, images } from '@/theme/images';
 
 export function CameraScreen() {
   const { t, draft, setDraft, navigate } = useApp();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** The picker's own file, used if the prepared copy cannot be displayed. */
+  const [pickedUri, setPickedUri] = useState<string | null>(null);
+  const [previewBroken, setPreviewBroken] = useState(false);
+  const [boxWidth, setBoxWidth] = useState(0);
+  /** Bumped once a photo lands, to remount the screen so the preview is laid out fresh. */
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const pick = async (source: 'camera' | 'gallery') => {
     setError(null);
@@ -33,6 +39,10 @@ export function CameraScreen() {
     if (!asset) return;
 
     setBusy(true);
+    setPreviewBroken(false);
+    setPickedUri(asset.uri);
+    // Show the picker's own file straight away so the preview is never blank while we normalise.
+    setDraft({ originalPhoto: asset.uri, photo: asset.uri, enhancedWith: null });
     try {
       const uri = await preparePhoto(asset.uri);
       setDraft({ originalPhoto: uri, photo: uri, enhancedWith: null });
@@ -41,13 +51,15 @@ export function CameraScreen() {
       setDraft({ originalPhoto: asset.uri, photo: asset.uri, enhancedWith: null });
     } finally {
       setBusy(false);
+      setRefreshKey((n) => n + 1);
     }
   };
 
-  const photo = draft.originalPhoto;
+  const photo = previewBroken && pickedUri ? pickedUri : draft.originalPhoto;
 
   return (
     <Screen
+      key={refreshKey}
       header={
         <>
           <Header
@@ -86,21 +98,44 @@ export function CameraScreen() {
       <Pressable
         disabled={busy}
         onPress={() => void pick('camera')}
-        className={`mt-5 w-full aspect-square rounded-[20px] overflow-hidden items-center justify-center ${photo ? 'bg-paper-200' : 'border border-gold-200'}`}
+        onLayout={(e) => setBoxWidth(e.nativeEvent.layout.width)}
+        // The height is measured, not derived from aspect-ratio: children here are absolutely
+        // positioned, and a box with no resolved height renders them invisible.
+        style={{ height: boxWidth || undefined, aspectRatio: boxWidth ? undefined : 1, backgroundColor: photo ? undefined : ILLUSTRATION_BG }}
+        className={`mt-5 w-full rounded-[20px] overflow-hidden ${photo ? 'bg-paper-200' : 'border border-gold-200'}`}
       >
-        {busy ? (
-          <ActivityIndicator color={colors.leaf500} size="large" />
-        ) : photo ? (
-          <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
+        {photo ? (
+          <Image
+            key={photo}
+            source={{ uri: photo }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            onError={() => {
+              // A prepared file that cannot be read: fall back to the picker's file.
+              if (!previewBroken && pickedUri) {
+                setPreviewBroken(true);
+                setDraft({ originalPhoto: pickedUri, photo: pickedUri });
+              }
+            }}
+          />
         ) : (
-          <View className="w-full h-full">
-            <Image source={images.cameraTip} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-            <View className="absolute bottom-4 self-center flex-row items-center gap-2 rounded-full bg-leaf-500 px-4 py-2.5">
-              <Camera size={18} color={colors.gold300} strokeWidth={2} />
-              <Txt variant="bodySm" weight="semibold" className="text-white">
-                {t.takePhoto}
-              </Txt>
+          <>
+            <Image source={images.cameraTip} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+            <View className="absolute bottom-4 left-0 right-0 items-center">
+              <View className="flex-row items-center gap-2 rounded-full bg-leaf-500 px-4 py-2.5">
+                <Camera size={18} color={colors.gold300} strokeWidth={2} />
+                <Txt variant="bodySm" weight="semibold" className="text-white">
+                  {t.takePhoto}
+                </Txt>
+              </View>
             </View>
+          </>
+        )}
+
+        {/* Overlay, so a slow render never replaces a photo that is already there. */}
+        {busy && (
+          <View style={StyleSheet.absoluteFill} className="items-center justify-center bg-black/25">
+            <ActivityIndicator color={colors.paper100} size="large" />
           </View>
         )}
       </Pressable>

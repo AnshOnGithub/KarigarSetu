@@ -36,12 +36,43 @@ async function pickVoice(language: Language): Promise<Speech.Voice | null | unde
 export interface SpeakOptions {
   /** English copy to speak when the phone has no voice for the chosen language. */
   fallbackText?: string;
+  /** Called once when this utterance finishes, is stopped, or is replaced by another. */
   onDone?: () => void;
 }
 
+/**
+ * Only one utterance plays at a time. Each call gets a session; stopping or starting
+ * another speech ends the previous session and fires its onDone exactly once.
+ * Without this, native onStopped events from an old utterance flip the wrong
+ * button back to "play", and a stop pressed while voices were still loading
+ * was ignored because the speech started afterwards.
+ */
+let session = 0;
+let finishCurrent: (() => void) | null = null;
+
+function endSession() {
+  session++;
+  const finish = finishCurrent;
+  finishCurrent = null;
+  finish?.();
+}
+
 export async function speak(text: string, language: Language, options: SpeakOptions = {}): Promise<void> {
+  endSession();
   Speech.stop();
+  const id = session;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (session === id) finishCurrent = null;
+    options.onDone?.();
+  };
+  finishCurrent = finish;
+
   const voice = await pickVoice(language);
+  // Stopped or replaced while the voice list was loading.
+  if (session !== id) return;
 
   let utterance = text;
   let languageCode = getLanguageInfo(language).speechCode;
@@ -49,21 +80,26 @@ export async function speak(text: string, language: Language, options: SpeakOpti
 
   if (voice === null && options.fallbackText) {
     const englishVoice = await pickVoice('english');
+    if (session !== id) return;
     utterance = options.fallbackText;
     languageCode = 'en-IN';
     voiceId = englishVoice?.identifier;
   }
 
+  const onEnd = () => {
+    if (session === id) finish();
+  };
   Speech.speak(utterance, {
     language: languageCode,
     voice: voiceId,
     rate: 0.92,
-    onDone: options.onDone,
-    onStopped: options.onDone,
-    onError: options.onDone,
+    onDone: onEnd,
+    onStopped: onEnd,
+    onError: onEnd,
   });
 }
 
 export function stopSpeaking() {
+  endSession();
   Speech.stop();
 }

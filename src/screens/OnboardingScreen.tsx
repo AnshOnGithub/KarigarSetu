@@ -3,6 +3,7 @@ import { Image, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/store/AppContext';
 import { Button } from '@/components/Button';
+import { GenderPicker } from '@/components/GenderPicker';
 import { GuideCard } from '@/components/GuideCard';
 import { Header } from '@/components/Header';
 import { LanguagePicker } from '@/components/LanguagePicker';
@@ -67,6 +68,12 @@ export function OnboardingScreen() {
             returnKeyType="next"
           />
           <Field label={t.yourCraft} placeholder={t.yourCraftPlaceholder} value={profile.craft} onChangeText={(craft) => updateProfile({ craft })} />
+          <View>
+            <Txt variant="bodySm" weight="semibold" className="mb-2 text-ink-700">
+              {t.yourGender}
+            </Txt>
+            <GenderPicker />
+          </View>
         </View>
         <GuideCard guide="profile" forceVoice className="mt-8" />
       </Screen>

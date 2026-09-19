@@ -1,6 +1,9 @@
+import { Asset } from 'expo-asset';
 import { Directory, File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { config, providers } from '@/config';
+import { images } from '@/theme/images';
+import { isDemoMode } from './demo';
 import { createInteraction, outputImage } from './gemini';
 
 const MAX_EDGE = 1600;
@@ -27,9 +30,17 @@ export async function preparePhoto(uri: string): Promise<string> {
   const rendered = await context.renderAsync();
   const saved = await rendered.saveAsync({ compress: 0.86, format: SaveFormat.JPEG });
 
-  const destination = newPhotoFile();
-  new File(saved.uri).copy(destination);
-  return destination.uri;
+  // Keep the photo in app storage so it survives the picker cache being cleared.
+  // copySync, not copy: the async version returns before the file exists, so the
+  // URI we hand back would point at nothing and every preview would be blank.
+  try {
+    const destination = newPhotoFile();
+    new File(saved.uri).copySync(destination);
+    if (destination.exists) return destination.uri;
+  } catch {
+    // fall through to the manipulator's own file, which is a real file too
+  }
+  return saved.uri;
 }
 
 /** Replaces the background with white via remove.bg. Returns the new local file URI. */
@@ -58,6 +69,16 @@ export async function removeBackground(uri: string): Promise<string> {
   return destination.uri;
 }
 
+/** JPEG as base64, or null when the file cannot be read; callers carry on without the photo. */
+export async function photoToBase64OrNull(uri: string | null, width = 1024): Promise<string | null> {
+  if (!uri) return null;
+  try {
+    return await photoToBase64(uri, width);
+  } catch {
+    return null;
+  }
+}
+
 /** JPEG as base64 for sending to a vision/image model. */
 export async function photoToBase64(uri: string, width = 1024): Promise<string> {
   const context = ImageManipulator.manipulate(uri);
@@ -68,40 +89,77 @@ export async function photoToBase64(uri: string, width = 1024): Promise<string> 
   return saved.base64;
 }
 
-export type StudioBackdrop = 'white' | 'ivory' | 'wood' | 'stone';
+export type StudioStyle = 'white' | 'home' | 'flatlay' | 'closeup' | 'festive' | 'custom';
 
-const BACKDROP_PROMPTS: Record<StudioBackdrop, string> = {
-  white: 'a seamless pure white studio sweep (infinity cove), like a premium e-commerce catalogue',
-  ivory: 'a seamless warm ivory paper backdrop with a subtle gradient, soft and elegant',
-  wood: 'a clean light oak tabletop in front of a softly blurred warm neutral wall',
-  stone: 'a smooth matte grey stone plinth in front of a soft light-grey backdrop',
+const STYLE_PROMPTS: Record<Exclude<StudioStyle, 'custom'>, string> = {
+  white:
+    'Place the product on a seamless pure white studio sweep (RGB 255,255,255) with a soft natural contact shadow. ' +
+    'Centre it, fill about 80% of the frame. This must meet marketplace main-image rules (ONDC, GeM, Amazon): white background, no props.',
+  home:
+    'Place the product in a tasteful, uncluttered modern Indian home setting where it would naturally be used or displayed ' +
+    '(e.g. on a side table, shelf or wall), with soft window light and a gently blurred background. The product stays the clear hero.',
+  flatlay:
+    'Show the product as a top-down flat lay, laid neatly flat and fully visible on a plain light neutral surface, evenly lit, ' +
+    'with folds smoothed. Ideal for sarees, stoles, dupattas, rugs, paintings and embroidery.',
+  closeup:
+    'Make a macro-style close-up of the most detailed part of the product so the weave, brushwork, carving or stitching is crisp, ' +
+    'with the rest of the product softly out of focus on a plain neutral background.',
+  festive:
+    'Place the product in a warm, elegant Indian festive gifting scene: soft warm light, a few subtle diyas or marigold petals ' +
+    'blurred in the background, never covering or touching the product.',
 };
 
-function studioPrompt(backdrop: StudioBackdrop) {
+function studioPrompt(style: StudioStyle, customPrompt?: string) {
+  const scene = style === 'custom' ? `Follow the artisan's instructions for the scene: """${(customPrompt ?? '').trim()}"""` : STYLE_PROMPTS[style];
   return [
-    'You are a professional product photographer and retoucher.',
+    'You are a professional product photographer and retoucher for an Indian handicrafts e-commerce catalogue.',
     'Take the handmade product from the provided photo and produce a studio product shot.',
     '1. Remove the original background, hands, clutter and any other objects completely.',
-    `2. Place the product on ${BACKDROP_PROMPTS[backdrop]}.`,
+    `2. ${scene}`,
     '3. Keep the product itself exactly as it is: same shape, proportions, colours, painted patterns, textures, weave and imperfections. Do not redraw, restyle, add or remove details, text or logos.',
-    '4. Light it with large soft boxes: even, soft key light, gentle fill, natural soft contact shadow under the product so it sits on the surface.',
-    '5. Centre the product, fill about 70% of the frame, straighten it, camera at eye level with a slight downward angle.',
+    '4. Correct the lighting and white balance so colours look true to life: even soft key light, gentle fill, no blown highlights or colour cast.',
+    '5. Straighten the product; camera at eye level with a slight downward angle unless the scene says otherwise.',
     'Output one photorealistic square image with no text, watermark or border.',
   ].join('\n');
 }
 
+/** Demo mode: the bundled example studio shot, after a pause that matches a real render. */
+async function demoStudioShot(): Promise<string> {
+  const [asset] = await Promise.all([
+    Asset.fromModule(images.demoStudio).downloadAsync(),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+  const source = asset.localUri ?? asset.uri;
+  if (!source) throw new Error('Demo photo is missing.');
+  try {
+    const destination = newPhotoFile();
+    new File(source).copySync(destination);
+    if (destination.exists) return destination.uri;
+  } catch {
+    // The bundled asset may not live on a path File can copy; re-encode it instead,
+    // so what we return is always a real JPEG the AI steps can read.
+  }
+  try {
+    return await preparePhoto(source);
+  } catch {
+    // Displayable either way, even if the AI steps cannot encode it.
+    return source;
+  }
+}
+
 /**
  * Creates a studio-style product photo: background removed and product placed on a
- * studio backdrop with soft lighting. Uses Gemini image editing, or remove.bg (white only) as fallback.
+ * chosen studio scene with corrected lighting. Uses Gemini image editing, or remove.bg (white only) as fallback.
  */
-export async function createStudioShot(uri: string, backdrop: StudioBackdrop): Promise<string> {
+export async function createStudioShot(uri: string, style: StudioStyle, customPrompt?: string): Promise<string> {
+  if (isDemoMode() || providers.studio === 'demo') return demoStudioShot();
   if (providers.studio === 'remove.bg') return removeBackground(uri);
   if (providers.studio !== 'gemini') throw new Error('Photo studio is not configured.');
 
   const response = await createInteraction({
     model: config.geminiImageModel,
     input: [
-      { type: 'text', text: studioPrompt(backdrop) },
+      { type: 'text', text: studioPrompt(style, customPrompt) },
       { type: 'image', mime_type: 'image/jpeg', data: await photoToBase64(uri, 1536) },
     ],
     // image_size is only accepted by the Gemini 3 image models.

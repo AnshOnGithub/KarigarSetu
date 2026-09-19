@@ -50,7 +50,8 @@
         {
           "microphonePermission": "KarigarSetu uses your microphone so you can describe your products by voice."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "androidStatusBar": {
       "backgroundColor": "#1F6B47",

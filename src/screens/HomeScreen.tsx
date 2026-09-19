@@ -1,6 +1,6 @@
 import { Image, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowRight, Camera, ChevronRight, Package, WifiOff } from 'lucide-react-native';
+import { ArrowRight, Camera, ChevronRight, ClipboardList, Package, TrendingUp, WifiOff } from 'lucide-react-native';
 import { useApp } from '@/store/AppContext';
 import { GuideCard } from '@/components/GuideCard';
 import { TAB_BAR_HEIGHT } from '@/components/TabBar';
@@ -20,11 +20,12 @@ export function HomeScreen() {
   const earnings = orders.filter((o) => o.status !== 'new').reduce((sum, o) => sum + o.total, 0);
   const recent = products.slice(0, 4);
   const firstName = profile.name.trim().split(' ')[0];
+  const artisan = profile.gender === 'male' ? images.artisanMale : profile.gender === 'female' ? images.artisanFemale : null;
 
   const stats = [
-    { label: t.liveProducts, value: String(liveCount), onPress: () => navigate('products') },
-    { label: t.newOrders, value: String(newOrders), onPress: () => navigate('orders'), highlight: newOrders > 0 },
-    { label: t.earnings, value: formatINRCompact(earnings), onPress: () => navigate('orders') },
+    { label: t.liveProducts, value: String(liveCount), icon: Package, onPress: () => navigate('products') },
+    { label: t.newOrders, value: String(newOrders), icon: ClipboardList, onPress: () => navigate('orders') },
+    { label: t.earnings, value: formatINRCompact(earnings), icon: TrendingUp, onPress: () => navigate('orders') },
   ];
 
   return (
@@ -35,46 +36,69 @@ export function HomeScreen() {
     >
       {/* The green band continues the status bar colour into the page. */}
       <HeroBand>
-        <View className="px-5 pt-3 pb-16">
+        {/* Artisan illustration on the right, balancing the greeting. */}
+        {artisan ? (
+          <Image
+            source={artisan}
+            style={{ position: 'absolute', right: -6, bottom: 0, width: 142, height: 196 }}
+            resizeMode="contain"
+          />
+        ) : null}
+        <View className="px-5 pt-3 pb-10">
           <View className="flex-row items-center justify-between">
             <Wordmark size={18} inverted />
           </View>
-          <Txt variant="display" className="text-white mt-6">
+          <Txt variant="display" className="text-white mt-6 pr-40">
             {t.greeting}
             {firstName ? ',' : ''}
           </Txt>
           {firstName ? (
-            <Txt variant="display" className="text-gold-300 -mt-1">
+            <Txt variant="display" className="text-gold-300 -mt-1 pr-40">
               {firstName}
             </Txt>
           ) : null}
           {profile.craft ? (
-            <Txt variant="bodySm" className="text-leaf-100 mt-1.5">
+            <Txt variant="bodySm" className="text-leaf-100 mt-1.5 pr-40">
               {profile.craft}
             </Txt>
           ) : null}
 
-          <View className="flex-row mt-6 rounded-2xl bg-white/10 border border-white/10 overflow-hidden">
-            {stats.map((stat, index) => (
-              <Pressable key={stat.label} onPress={stat.onPress} className={`flex-1 px-3.5 py-3 active:bg-white/10 ${index > 0 ? 'border-l border-white/10' : ''}`}>
-                <Txt variant="title" latin className={stat.highlight ? 'text-gold-300' : 'text-white'} numberOfLines={1}>
-                  {stat.value}
-                </Txt>
-                <Txt variant="caption" numberOfLines={1} className="mt-0.5 text-leaf-100">
-                  {stat.label}
-                </Txt>
-              </Pressable>
-            ))}
-          </View>
         </View>
       </HeroBand>
 
-      <View className="px-5 -mt-10">
+      <View className="px-5 -mt-7">
+        <View className="flex-row gap-3">
+          {stats.map(({ label, value, icon: StatIcon, onPress }) => (
+            <Pressable
+              key={label}
+              accessibilityRole="button"
+              accessibilityLabel={`${value} ${label}`}
+              onPress={onPress}
+              className="flex-1 bg-white rounded-[18px] border border-paper-200 overflow-hidden active:bg-paper-50"
+              style={{ shadowColor: '#26302A', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 }}
+            >
+              {/* Gold rule across the top of the card. */}
+              <View className="h-[3px] bg-gold-400" />
+              <View className="px-3 py-3">
+                <View className="w-7 h-7 rounded-lg bg-gold-50 items-center justify-center">
+                  <StatIcon size={15} color={colors.gold600} strokeWidth={2} />
+                </View>
+                <Txt variant="title" latin className="mt-2 text-ink-900" numberOfLines={1}>
+                  {value}
+                </Txt>
+                <Txt variant="caption" numberOfLines={1} className="mt-0.5">
+                  {label}
+                </Txt>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t.addProduct}
           onPress={startNewProduct}
-          className="bg-white rounded-[22px] p-4 flex-row items-center gap-4 border border-gold-100 active:opacity-90"
+          className="mt-4 bg-white rounded-[22px] p-4 flex-row items-center gap-4 border border-gold-100 active:opacity-90"
           style={{ shadowColor: '#7A580E', shadowOpacity: 0.16, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6 }}
         >
           <View className="w-16 h-16 rounded-2xl bg-gold-400 items-center justify-center">

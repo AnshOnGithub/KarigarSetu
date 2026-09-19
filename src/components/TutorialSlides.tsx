@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Pressable, View } from 'react-native';
-import { Volume2 } from 'lucide-react-native';
+import { Volume2, VolumeX } from 'lucide-react-native';
 import { twMerge } from 'tailwind-merge';
 import { useApp } from '@/store/AppContext';
 import { GUIDES } from '@/i18n/guides';
@@ -76,11 +76,11 @@ export function TutorialSlides({ onFinish, onSkip, finishLabel }: TutorialSlides
         <View className="flex-row items-center gap-1">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t.listen}
+            accessibilityLabel={speaking ? t.stop : t.listen}
             onPress={toggleVoice}
             className={twMerge('w-11 h-11 rounded-full items-center justify-center', speaking ? 'bg-gold-100' : 'active:bg-paper-200')}
           >
-            <Volume2 size={20} color={speaking ? colors.gold700 : colors.ink500} />
+            {speaking ? <Volume2 size={20} color={colors.gold700} /> : <VolumeX size={20} color={colors.ink500} />}
           </Pressable>
           {onSkip && !finished && (
             <Pressable onPress={onSkip} className="h-11 px-3 rounded-full items-center justify-center active:bg-paper-200">

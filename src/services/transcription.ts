@@ -50,7 +50,6 @@ async function transcribeWithGemini(audioUri: string, language: Language): Promi
       },
       { type: 'audio', mime_type: mime, data: await new File(audioUri).base64() },
     ],
-    generation_config: { thinking_level: 'minimal' },
   }, { fallbackModels: config.geminiTextFallbackModels });
   return outputText(response);
 }

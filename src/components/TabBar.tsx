@@ -35,21 +35,33 @@ export function TabBar() {
             accessibilityState={{ selected: active }}
             accessibilityLabel={t[key]}
             onPress={() => navigate(screen)}
-            className="flex-1 items-center justify-center gap-1"
+            className="flex-1 items-center justify-center px-1.5"
           >
-            <View className={twMerge('w-14 h-8 rounded-full items-center justify-center', active && 'bg-gold-100')}>
-              <Icon size={21} color={active ? colors.leaf700 : colors.ink400} strokeWidth={active ? 2.3 : 1.9} />
-              {key === 'orders' && newOrders > 0 && (
-                <View className="absolute top-0.5 right-3 min-w-4 h-4 px-1 rounded-full bg-gold-400 items-center justify-center">
-                  <Txt variant="caption" latin weight="bold" className="text-[10px] leading-[12px] text-leaf-900">
-                    {newOrders}
-                  </Txt>
-                </View>
+            <View
+              className={twMerge(
+                'w-full max-w-[76px] items-center rounded-[14px] px-1.5 py-1',
+                active ? 'bg-gold-50 border border-gold-200' : 'border border-transparent'
               )}
+            >
+              <View className="h-6 items-center justify-center">
+                <Icon size={19} color={active ? colors.leaf700 : colors.ink400} strokeWidth={active ? 2.3 : 1.9} />
+                {key === 'orders' && newOrders > 0 && (
+                  <View className="absolute -top-0.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-gold-400 items-center justify-center">
+                    <Txt variant="caption" latin weight="bold" className="text-[10px] leading-[12px] text-leaf-900">
+                      {newOrders}
+                    </Txt>
+                  </View>
+                )}
+              </View>
+              <Txt
+                variant="caption"
+                weight={active ? 'semibold' : 'medium'}
+                className={twMerge('text-[11px]', active ? 'text-leaf-700' : 'text-ink-500')}
+                numberOfLines={1}
+              >
+                {t[key]}
+              </Txt>
             </View>
-            <Txt variant="caption" weight={active ? 'semibold' : 'medium'} className={active ? 'text-leaf-700' : 'text-ink-500'} numberOfLines={1}>
-              {t[key]}
-            </Txt>
           </Pressable>
         );
       })}

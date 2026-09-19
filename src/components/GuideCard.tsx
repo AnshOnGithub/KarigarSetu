@@ -17,7 +17,7 @@ interface GuideCardProps {
 
 /** On-screen instruction that is also read aloud in the artisan's language. */
 export function GuideCard({ guide, className, forceVoice }: GuideCardProps) {
-  const { language, voiceGuide } = useApp();
+  const { language, voiceGuide, t } = useApp();
   const [speaking, setSpeaking] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
   const text = GUIDES[language].screens[guide];
@@ -42,13 +42,18 @@ export function GuideCard({ guide, className, forceVoice }: GuideCardProps) {
   useEffect(() => {
     if (!(voiceGuide || forceVoice)) return;
     const timer = setTimeout(play, 350);
-    return () => {
-      clearTimeout(timer);
-      stopSpeaking();
-    };
+    return () => clearTimeout(timer);
     // Re-speak when the screen or language changes, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guide, language]);
+
+  // Always silence this card when the screen changes, even if it was started by a tap.
+  useEffect(() => () => stopSpeaking(), [guide, language]);
+
+  // Turning the voice guide off mutes whatever is playing right away.
+  useEffect(() => {
+    if (!voiceGuide && !forceVoice) stopSpeaking();
+  }, [voiceGuide, forceVoice]);
 
   useEffect(() => {
     if (!speaking) {
@@ -69,7 +74,8 @@ export function GuideCard({ guide, className, forceVoice }: GuideCardProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityHint="Reads this instruction aloud"
+      accessibilityLabel={speaking ? t.stop : t.listen}
+      accessibilityState={{ selected: speaking }}
       onPress={toggle}
       className={twMerge('flex-row items-center gap-3 rounded-2xl bg-gold-50 border border-gold-100 pl-3 pr-4 py-3 active:bg-gold-100', className)}
     >
@@ -86,7 +92,7 @@ export function GuideCard({ guide, className, forceVoice }: GuideCardProps) {
           }}
         />
         <View className="w-9 h-9 rounded-full bg-gold-400 items-center justify-center">
-          {speaking ? <VolumeX size={17} color={colors.leaf900} /> : <Volume2 size={17} color={colors.leaf900} />}
+          {speaking ? <Volume2 size={17} color={colors.leaf900} /> : <VolumeX size={17} color={colors.leaf900} />}
         </View>
       </View>
       <Txt variant="bodySm" className="flex-1 text-ink-800">

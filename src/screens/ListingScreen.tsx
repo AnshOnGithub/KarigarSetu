@@ -33,6 +33,8 @@ export function ListingScreen() {
       setDraft({
         title: listing.title,
         description: listing.description,
+        titleHi: listing.titleHi,
+        descriptionHi: listing.descriptionHi,
         localDescription: listing.localDescription,
         highlights: listing.highlights,
         category: listing.category,
@@ -107,6 +109,8 @@ export function ListingScreen() {
           <View className="gap-4 mt-5">
             <Field label={t.titleLabel} latin value={draft.title} onChangeText={(title) => setDraft({ title })} />
             <Field label={t.descriptionLabel} latin multiline value={draft.description} onChangeText={(description) => setDraft({ description })} />
+            <Field label={t.titleHiLabel} value={draft.titleHi} onChangeText={(titleHi) => setDraft({ titleHi })} />
+            <Field label={t.descriptionHiLabel} multiline value={draft.descriptionHi} onChangeText={(descriptionHi) => setDraft({ descriptionHi })} />
           </View>
 
           {draft.highlights.length > 0 && (

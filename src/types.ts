@@ -1,3 +1,5 @@
+import type { MarketResearch } from '@/services/marketResearch';
+
 export type Language = 'english' | 'hindi' | 'odia' | 'bengali' | 'tamil' | 'telugu' | 'marathi' | 'gujarati';
 
 export type ScreenName =
@@ -30,6 +32,8 @@ export interface Product {
   id: string;
   title: string;
   description: string;
+  titleHi?: string;
+  descriptionHi?: string;
   /** Artisan-language copy of the description, read aloud to them. */
   localDescription?: string;
   highlights: string[];
@@ -41,6 +45,9 @@ export interface Product {
   status: 'published' | 'draft';
   costBreakdown: CostBreakdown;
   createdAt: number;
+  /** Id on the KarigarSetu API once pushed to marketplaces. */
+  remoteId?: string;
+  syncState?: 'pending' | 'synced' | 'failed';
 }
 
 export type OrderStatus = 'new' | 'accepted' | 'packed' | 'shipped' | 'delivered';
@@ -58,9 +65,13 @@ export interface Order {
   createdAt: number;
 }
 
+export type Gender = 'male' | 'female';
+
 export interface Profile {
   name: string;
   craft: string;
+  /** Picks which artisan illustration the home screen shows; null until chosen. */
+  gender: Gender | null;
 }
 
 export interface NewProductDraft {
@@ -71,11 +82,14 @@ export interface NewProductDraft {
   transcript: string;
   title: string;
   description: string;
+  titleHi: string;
+  descriptionHi: string;
   localDescription: string;
   highlights: string[];
   category: string;
   aiPrice: number | null;
   aiPriceReason: string;
+  marketResearch: MarketResearch | null;
   price: number;
   stock: number;
   costBreakdown: CostBreakdown;

@@ -5,11 +5,11 @@ import { useApp } from '@/store/AppContext';
 import { format } from '@/i18n/strings';
 import { Button } from '@/components/Button';
 import { GuideCard } from '@/components/GuideCard';
+import { HeroBand } from '@/components/HeroBand';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { Badge, CHANNEL_TONE, Card, formatINR } from '@/components/ui';
 import { colors } from '@/theme/colors';
-import { CELEBRATION_BG, images } from '@/theme/images';
 
 export function SuccessScreen() {
   const { t, products, lastPublishedId, navigate, startNewProduct } = useApp();
@@ -38,8 +38,7 @@ export function SuccessScreen() {
         </View>
       }
     >
-      <View style={{ backgroundColor: CELEBRATION_BG, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}>
-        <Image source={images.successCelebration} style={{ position: 'absolute', top: 0, left: 0, right: 0, width: '100%', aspectRatio: 1376 / 768 }} resizeMode="cover" />
+      <HeroBand>
         <View className="items-center px-6 pt-24 pb-12">
           <Animated.View
             style={{
@@ -64,7 +63,7 @@ export function SuccessScreen() {
             {format(t.liveHint, { channels: product.channels.join(', ') })}
           </Txt>
         </View>
-      </View>
+      </HeroBand>
 
       <View className="px-5">
       <Card className="-mt-6 overflow-hidden">

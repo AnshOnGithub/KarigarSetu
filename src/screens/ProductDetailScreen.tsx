@@ -9,7 +9,7 @@ import { GuideCard } from '@/components/GuideCard';
 import { Header } from '@/components/Header';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { Card, Divider, Field, SectionLabel } from '@/components/ui';
+import { Badge, Card, Divider, Field, SectionLabel } from '@/components/ui';
 import { colors } from '@/theme/colors';
 
 const CHANNELS: Channel[] = ['ONDC', 'GeM', 'B2B'];
@@ -64,6 +64,13 @@ export function ProductDetailScreen() {
           {product.category}
         </Txt>
       ) : null}
+      {product.syncState && (
+        <Badge
+          label={product.syncState === 'synced' ? t.syncDone : product.syncState === 'pending' ? t.syncPending : t.syncFailed}
+          tone={product.syncState === 'synced' ? 'leaf' : product.syncState === 'pending' ? 'gold' : 'clay'}
+          className="mt-2"
+        />
+      )}
 
       <View className="flex-row gap-3 mt-5">
         <Field

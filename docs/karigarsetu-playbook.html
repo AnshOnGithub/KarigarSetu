@@ -1,0 +1,592 @@
+<title>KarigarSetu Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Noto+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F6F6F1; --surface:#FFFFFF; --sunk:#EEEEE6; --line:#DCDDD2;
+  --ink:#161D19; --ink-2:#3B463F; --ink-3:#66716A;
+  --leaf:#1F6B47; --leaf-soft:#E3EEE7; --gold:#A37612; --gold-soft:#FBF1D6; --gold-bright:#E2AE2E;
+  --clay:#A34A22; --clay-soft:#F7E6DC; --sky:#2D5F86; --sky-soft:#E2ECF4;
+  --code:#EDEEE7;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Noto Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1511; --surface:#151F19; --sunk:#1B2720; --line:#2A3A31;
+    --ink:#E5EBE6; --ink-2:#C0CBC3; --ink-3:#8E9B92;
+    --leaf:#76C095; --leaf-soft:#1C3327; --gold:#EEC55A; --gold-soft:#332A12; --gold-bright:#EEC55A;
+    --clay:#EE9C75; --clay-soft:#3A2419; --sky:#8DBBE0; --sky-soft:#1A2A38; --code:#1B2720;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1511; --surface:#151F19; --sunk:#1B2720; --line:#2A3A31;
+  --ink:#E5EBE6; --ink-2:#C0CBC3; --ink-3:#8E9B92;
+  --leaf:#76C095; --leaf-soft:#1C3327; --gold:#EEC55A; --gold-soft:#332A12; --gold-bright:#EEC55A;
+  --clay:#EE9C75; --clay-soft:#3A2419; --sky:#8DBBE0; --sky-soft:#1A2A38; --code:#1B2720;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;padding-inline:20px;padding-block:0 80px}
+a{color:var(--leaf);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px;border-radius:4px}
+.shell{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:40px}
+@media (min-width:1000px){.shell{grid-template-columns:230px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){
+  nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;padding-top:36px;font-size:13.5px}
+}
+.toc p{margin:18px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.toc a{display:block;padding:4px 0 4px 10px;color:var(--ink-2);text-decoration:none;border-left:2px solid var(--line)}
+.toc a:hover{color:var(--leaf);border-left-color:var(--leaf)}
+main{min-width:0;max-width:820px}
+header.top{padding-block:40px 28px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.eyebrow{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(34px,6vw,50px);line-height:1.08;margin:10px 0 14px;text-wrap:balance;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--leaf)}
+.lede{font-size:17px;color:var(--ink-2);max-width:62ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:13px;color:var(--ink-3)}
+.part{margin-top:64px}
+.part-label{display:flex;align-items:baseline;gap:12px;border-top:3px solid var(--ink);padding-top:12px}
+.part-label span{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+.part-label h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34px);margin:0;line-height:1.15;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:22px;margin:44px 0 10px;line-height:1.25;text-wrap:balance;scroll-margin-top:20px}
+h4{font-size:13px;letter-spacing:.07em;text-transform:uppercase;margin:28px 0 8px;color:var(--ink-2)}
+p{margin:0 0 14px;max-width:68ch}
+ul,ol{padding-left:22px;margin:0 0 16px;max-width:68ch}
+li{margin-bottom:6px}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);padding:1px 5px;border-radius:4px}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--code);padding:14px 16px;border-radius:8px;overflow-x:auto;margin:0 0 18px}
+.callout{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:16px 18px;margin:18px 0}
+.callout.verdict{background:var(--leaf-soft);border-color:transparent}
+.callout.warn{background:var(--clay-soft);border-color:transparent}
+.callout.note{background:var(--gold-soft);border-color:transparent}
+.callout h5{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.callout.verdict h5{color:var(--leaf)} .callout.warn h5{color:var(--clay)} .callout.note h5{color:var(--gold)}
+.quote{font-family:var(--display);font-size:21px;line-height:1.4;border-left:3px solid var(--gold-bright);padding:4px 0 4px 18px;margin:22px 0;max-width:60ch;text-wrap:balance}
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.k{font-weight:600;white-space:nowrap}
+.chip{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px;white-space:nowrap;vertical-align:1px}
+.built{background:var(--leaf-soft);color:var(--leaf)}
+.partial{background:var(--gold-soft);color:var(--gold)}
+.planned{background:var(--sky-soft);color:var(--sky)}
+.risk{background:var(--clay-soft);color:var(--clay)}
+.rails{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:18px 0 22px}
+.rail{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rail b{display:block;font-family:var(--display);font-size:18px;font-weight:600;margin-bottom:2px}
+.rail small{display:block;color:var(--ink-3);font-size:12.5px;margin-bottom:8px}
+.rail p{font-size:14px;margin:0}
+.slide{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:18px 0 26px;overflow:hidden}
+.slide-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:12px 18px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.slide-head b{font-family:var(--display);font-size:19px;font-weight:600}
+.slide-head span{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.slide-body{padding:14px 18px 4px}
+.fix{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px}
+@media (min-width:640px){.fix{grid-template-columns:1fr 1fr}}
+.was,.now{border-radius:8px;padding:10px 12px;font-size:14px}
+.was{background:var(--clay-soft)} .now{background:var(--leaf-soft)}
+.was i,.now i{display:block;font-style:normal;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+.was i{color:var(--clay)} .now i{color:var(--leaf)}
+.was p,.now p{margin:0 0 6px} .was p:last-child,.now p:last-child{margin:0}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 20px;overflow-x:auto}
+pre.mermaid{margin:0;background:transparent;font-family:var(--body);text-align:center}
+details{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 10px}
+summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";display:inline-block;width:18px;color:var(--gold);font-family:var(--mono)}
+details[open] summary::before{content:"–"}
+details > div{padding:0 16px 12px 34px;font-size:14.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0 20px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface)}
+.kpi b{display:block;font-family:var(--display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--leaf)}
+.kpi span{font-size:13px;color:var(--ink-2)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+</style>
+
+<div class="shell">
+<nav class="toc" aria-label="Contents">
+  <p>A · The problem statement</p>
+  <a href="#gaps">What the PS leaves open</a>
+  <a href="#decisions">Our design decisions</a>
+  <a href="#endproduct">The end product</a>
+  <a href="#rails">How publishing works</a>
+  <a href="#seller">Seller of record</a>
+  <p>B · The presentation</p>
+  <a href="#deck-issues">Critical fixes</a>
+  <a href="#slides">Slide-by-slide rewrite</a>
+  <a href="#differentiators">What makes it hard to beat</a>
+  <a href="#qa">Judge Q&amp;A</a>
+  <p>C · Project documentation</p>
+  <a href="#overview">Overview &amp; status</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#flow">Artisan flow</a>
+  <a href="#ai">AI pipeline</a>
+  <a href="#pricing">Pricing engine</a>
+  <a href="#api">Market Linkage API</a>
+  <a href="#data">Data model</a>
+  <a href="#offline">Offline &amp; sync</a>
+  <a href="#security">Security &amp; privacy</a>
+  <a href="#run">Run it</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#kpis">Impact metrics</a>
+</nav>
+
+<main>
+<header class="top">
+  <div class="eyebrow">SIH 2026 · PS SIH26090 · Ministry of Social Justice &amp; Empowerment · Team Executors</div>
+  <h1>KarigarSetu: <em>one catalogue</em>, every market an artisan can reach</h1>
+  <p class="lede">What the problem statement actually needs, how we turn its open questions into a working design, exactly what to change in the idea deck, and the technical documentation of the app and its Market Linkage API.</p>
+  <div class="meta"><span>Status as of 16 Sep 2026</span><span>Legend: <span class="chip built">Built</span> <span class="chip partial">Partly built</span> <span class="chip planned">Planned</span></span></div>
+</header>
+
+<!-- ============ PART A ============ -->
+<section class="part" id="part-a">
+  <div class="part-label"><span>Part A</span><h2>Reading the problem statement</h2></div>
+
+  <p style="margin-top:18px">The problem statement asks for three AI features (image studio, multilingual cataloguer, pricing assistant) and a goal: connect artisans <strong>"directly with larger B2B buyers or government e-marketplaces"</strong>. It never says which marketplaces, who legally sells, or how a listing technically reaches a buyer. Most teams will build the three features and draw an arrow labelled "ONDC / GeM". Judges will probe that arrow. Winning means answering it concretely.</p>
+
+  <h3 id="gaps">What the problem statement leaves open</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Open question</th><th>Why it matters</th><th>Our resolution</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Which marketplaces?</td><td>Each has different onboarding, data fields and technical access.</td><td>Don't bet on one. Build a channel-neutral master catalogue with adapters: ONDC, GeM, B2B buyers, direct storefront.</td></tr>
+      <tr><td class="k">How does data get there?</td><td>GeM has no public third-party listing API that we could find; ONDC needs a registered seller app.</td><td>Four publishing rails, each using the route that actually exists today (see below).</td></tr>
+      <tr><td class="k">Who is the seller?</td><td>ONDC and GeM onboarding need GSTIN, PAN and bank details. Most target artisans don't have a GSTIN.</td><td>An aggregator is seller of record (scheme corporation, cluster, SHG, producer company); KarigarSetu manages the catalogue for each artisan under it.</td></tr>
+      <tr><td class="k">"Market trends" from where?</td><td>A pricing "ML model" with no market data is a guess.</td><td>Price = cost floor + comparable-listings band + model; artisan always edits. Data from channel feeds and partner orders.</td></tr>
+      <tr><td class="k">Which languages?</td><td>Input "regional languages"; output "English and Hindi".</td><td>Voice and UI in 8 languages; listing generated in English + Hindi + the artisan's own language (read back aloud).</td></tr>
+      <tr><td class="k">Offline expectations?</td><td>Rural connectivity; AI needs network.</td><td>Capture offline, queue AI and publishing, sync automatically on reconnect. Never claim AI runs offline.</td></tr>
+      <tr><td class="k">Who runs the backend?</td><td>A government-supported beneficiary programme needs an operator.</td><td>Ministry or its corporation operates the hub; platforms integrate with it (a digital public infrastructure pattern).</td></tr>
+      <tr><td class="k">Orders, payment, delivery?</td><td>A listing without fulfilment doesn't raise income.</td><td>Orders flow back to the app via API; payment and logistics are handled by the channel (ONDC network, GeM, buyer) or the aggregator.</td></tr>
+      <tr><td class="k">How is impact measured?</td><td>Impact goal is "increase average annual income".</td><td>Ministry dashboard: artisans onboarded, live listings, orders, GMV and income by district and scheme.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="decisions">Design decisions this leads to</h3>
+  <ol>
+    <li><strong>Catalogue as infrastructure, not a marketplace.</strong> KarigarSetu does not compete with GeM or ONDC buyer apps. It produces clean, verified, bilingual product data and pushes it everywhere.</li>
+    <li><strong>One master record per product.</strong> Channel-specific formats (ONDC catalogue, GeM sheet, B2B JSON) are derived, never hand-maintained.</li>
+    <li><strong>Pull and push.</strong> Platforms can poll an incremental feed or receive signed webhooks the moment an artisan publishes, edits or delists.</li>
+    <li><strong>Artisan always approves.</strong> AI drafts, the artisan confirms by listening to it in their language.</li>
+    <li><strong>Aggregator model</strong> for legal selling, so a first-time smartphone user without a GSTIN can still sell.</li>
+    <li><strong>Honest about access.</strong> Where no API exists (GeM today), the system generates the exact upload file; direct integration follows an MoU.</li>
+  </ol>
+
+  <h3 id="endproduct">The end product: three pieces, not one app</h3>
+  <div class="rails">
+    <div class="rail"><b>1 · Artisan app</b><small>React Native · Android first <span class="chip built">Built</span></small><p>Photo → AI studio → voice description → bilingual listing → price → publish. Voice-guided in 8 languages.</p></div>
+    <div class="rail"><b>2 · Market Linkage Hub</b><small>Node.js API <span class="chip built">Built</span></small><p>Master catalogue, partner API keys, incremental feed, ONDC and CSV formats, signed webhooks, order ingest.</p></div>
+    <div class="rail"><b>3 · Web console</b><small>Aggregator + ministry <span class="chip planned">Planned</span></small><p>Approve listings, bulk-export for GeM, public storefronts with QR codes, impact dashboard by district and scheme.</p></div>
+  </div>
+  <div class="callout verdict"><h5>Verdict on "end output as an API"</h5><p>Right foundation, not the whole answer. An API only publishes when a platform consumes it. So the deliverable is the API <strong>plus</strong> a concrete route into each channel, a seller-of-record model, and a demo that shows data landing somewhere.</p></div>
+
+  <h3 id="rails">How a listing reaches buyers: four rails</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Rail</th><th>Mechanism</th><th>What exists in code</th><th>Honest claim for judges</th></tr></thead>
+    <tbody>
+      <tr><td class="k">ONDC</td><td>Seller-side network participant (Beckn protocol) serves the catalogue to all buyer apps. Build our own seller app, or plug into an existing one (e.g. Fynd, Craftsvilla).</td><td><code>GET /v1/catalog/ondc</code> returns ONDC retail catalogue shape <span class="chip partial">Partly built</span></td><td>"Live on ONDC through a seller-app connector; tested on the ONDC staging network." Only say "tested" once you have.</td></tr>
+      <tr><td class="k">GeM</td><td>Registered seller (the aggregator) uploads products. Secondary users can manage the catalogue if authorised by the primary seller.</td><td><code>GET /v1/catalog/export.csv</code> bulk sheet with HSN, EN + HI <span class="chip built">Built</span></td><td>"Assisted bulk publishing today; direct API integration on MoU with GeM."</td></tr>
+      <tr><td class="k">B2B buyers</td><td>Corporate gifting, export houses, government procurement desks consume our API directly.</td><td>API keys, feed, webhooks, <code>POST /v1/orders</code> <span class="chip built">Built</span></td><td>"Any buyer integrates in a day with OpenAPI docs and signed webhooks."</td></tr>
+      <tr><td class="k">Direct</td><td>Public storefront per artisan, QR code at fairs (Dilli Haat, Surajkund, Shilp Samagam), WhatsApp share.</td><td>— <span class="chip planned">Planned</span></td><td>"Every buyer met at a fair can reorder all year." Directly answers the PS background.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  A[Artisan app] -- publish --> H[(KarigarSetu Hub<br/>master catalogue)]
+  H -- ONDC catalogue --> O[ONDC seller app] --> OB[Paytm · Magicpin · other buyer apps]
+  H -- bulk sheet --> G[Aggregator uploads to GeM] --> GB[Government buyers]
+  H -- feed + webhooks --> B[B2B buyer systems]
+  H -- storefront + QR --> D[Direct buyers · fairs · WhatsApp]
+  OB & GB & B & D -- orders --> H -- orders --> A
+  </pre></div>
+
+  <h3 id="seller">Seller of record: the piece most teams miss</h3>
+  <p>Onboarding on ONDC and GeM needs GSTIN, PAN, bank account and address. A first-time smartphone user can't do that alone. We propose:</p>
+  <ul>
+    <li><strong>Aggregator sells, artisan earns.</strong> The ministry's corporations (NSFDC, NBCFDC, NSKFDC), a craft cluster, an SHG federation or a producer company registers once on each channel.</li>
+    <li>Each artisan is a sub-profile with beneficiary ID, Udyam number (optional) and bank account. Every product carries the artisan's identity to the buyer (name, craft, district).</li>
+    <li>Payments settle to the aggregator and pass to the artisan's account, with a ledger visible in the app.</li>
+    <li>As an artisan grows (own GSTIN), they can graduate to selling directly. The catalogue moves with them.</li>
+  </ul>
+  <div class="callout note"><h5>Verify before the finale</h5><p>Channel rules change. Confirm with ONDC and GeM helpdesks: current seller onboarding requirements, whether GeM offers any partner/API programme, and ONDC category codes for handicrafts. Put the confirmed answer in the deck.</p></div>
+</section>
+
+<!-- ============ PART B ============ -->
+<section class="part" id="part-b">
+  <div class="part-label"><span>Part B</span><h2>The idea deck: exact changes</h2></div>
+
+  <p style="margin-top:18px">Keep the six-slide SIH template. The deck's strongest asset is "one product, one catalogue, multiple channels". The weakness is that several claims don't match what's built or can't be backed up. Nobody can guarantee a win, but a deck with no unsupported claims and a concrete publishing story removes the easy ways to lose.</p>
+
+  <h3 id="deck-issues">Critical fixes (do these first)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Issue</th><th>Where</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><span class="chip risk">Mismatch</span> AI models</td><td>Slides 5, 6</td><td>Deck names RMBG-1.4, Zero-DCE, AI4Bharat IndicWhisper; app uses Gemini (studio, speech), Sarvam (speech), Claude/Gemini (listing). Say: "Prototype: Gemini + Sarvam. Production: self-hosted RMBG-1.4 / Zero-DCE / IndicWhisper for cost and data residency."</td></tr>
+      <tr><td class="k"><span class="chip risk">Contradiction</span> Stack</td><td>Slides 3 vs 4</td><td>Slide 3: PostgreSQL + SQLite. Slide 4: Python + MySQL. Use one: React Native (Expo) · Node.js/Express · PostgreSQL (SQLite in prototype) · on-device storage.</td></tr>
+      <tr><td class="k"><span class="chip risk">Overclaim</span> "100% offline-first"</td><td>Slide 5</td><td>AI needs network. Replace with "Capture offline · AI and publishing sync automatically when online".</td></tr>
+      <tr><td class="k"><span class="chip risk">Unsupported</span> "+35–40% earnings"</td><td>Slide 5</td><td>No source. Remove, or cite a study, or reframe as a pilot target: "Target: +25% annual income in 12 months (measured on dashboard)".</td></tr>
+      <tr><td class="k"><span class="chip risk">Overclaim</span> "Eliminates middlemen"</td><td>Slide 5</td><td>"Reduces dependence on middlemen".</td></tr>
+      <tr><td class="k"><span class="chip risk">Missing</span> English + Hindi output</td><td>Slide 2</td><td>The PS names it explicitly. Add it word for word.</td></tr>
+      <tr><td class="k"><span class="chip risk">Missing</span> How publishing works</td><td>Slides 2, 3</td><td>Add the four rails and seller-of-record model.</td></tr>
+      <tr><td class="k"><span class="chip risk">Wrong ministry fit</span></td><td>Slide 6</td><td>PM Vishwakarma is Ministry of MSME; Pehchan is Ministry of Textiles. Add the sponsor's own: NSFDC, NBCFDC, NSKFDC, PM-DAKSH.</td></tr>
+      <tr><td class="k">Old screenshot</td><td>Slide 5</td><td>Shows White / Cream / Wood / Stone. Replace with the new looks screen, and a before → after pair.</td></tr>
+      <tr><td class="k">Typos</td><td>Slides 1, 2, 4, 5, 6</td><td>Team ID blank · "Capture AI →" · "andAPIs" · "marketintegration" · "MSR LOW Literacy" · "his Odia voice note" (Reema: her) · duplicated "earnings by 35%" · "[KarigarSetu]" not a real link.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="slides">Slide-by-slide rewrite</h3>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 1</span><b>Title</b></div>
+    <div class="slide-body">
+      <ul>
+        <li>Fill in Team ID.</li>
+        <li>Add one line under the title: <strong>"KarigarSetu — voice-first AI catalogue manager that publishes artisans' products to ONDC, GeM and B2B buyers."</strong></li>
+        <li>Put the KarigarSetu logo here (currently only on slide 5).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 2</span><b>Idea</b></div>
+    <div class="slide-body">
+      <div class="fix">
+        <div class="was"><i>Now</i><p>Four problem bubbles, four solution cards, prototype flow "Capture AI → Catalogue → Price → Approve → Publish", then "After publish" arrows.</p></div>
+        <div class="now"><i>Change to</i><p>Keep the tagline and "not a consumer marketplace". Map each solution card to a PS feature by name.</p></div>
+      </div>
+      <h4>Solution cards (replace text)</h4>
+      <ul>
+        <li><strong>AI Photo Studio</strong> — removes clutter, fixes light, marketplace-ready white background or styled scenes.</li>
+        <li><strong>Speak, don't type</strong> — voice note in 8 Indian languages → SEO title and description in <strong>English and Hindi</strong>, read back in the artisan's language.</li>
+        <li><strong>Fair Price Assistant</strong> — material + labour cost floor, comparable market prices, artisan decides.</li>
+        <li><strong>Publish everywhere</strong> — one master catalogue → ONDC · GeM · B2B buyers · own storefront with QR.</li>
+      </ul>
+      <h4>Flow line</h4>
+      <p><code>Photo → AI studio → Voice → Bilingual listing → Price → Artisan approves → Publish to 4 channels → Orders back in app</code></p>
+      <h4>Add one line</h4>
+      <p>"Aggregator (scheme corporation / cluster / SHG) is seller of record, so artisans without GSTIN can sell on day one."</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 3</span><b>Technical approach</b></div>
+    <div class="slide-body">
+      <div class="fix">
+        <div class="was"><i>Now</i><p>Vertical architecture chart ending in "Syndication engine → ONDC / GeM / B2B"; generic stack list ("Vision model, Language model, Pricing model").</p></div>
+        <div class="now"><i>Change to</i><p>Three-box architecture: <strong>Artisan app → Market Linkage Hub → Channels</strong>, with the hub's interfaces labelled.</p></div>
+      </div>
+      <h4>Hub box labels</h4>
+      <ul>
+        <li>Master catalogue (PostgreSQL)</li>
+        <li>Partner API · OpenAPI 3.1 · API keys per platform</li>
+        <li>Incremental feed · ONDC catalogue format · GeM bulk sheet</li>
+        <li>Signed webhooks (HMAC-SHA256, retries)</li>
+        <li>Orders back to artisan</li>
+      </ul>
+      <h4>Tech stack (name real things)</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Layer</th><th>Prototype</th><th>Production</th></tr></thead>
+        <tbody>
+          <tr><td class="k">App</td><td>React Native (Expo), TypeScript, on-device storage</td><td>Same + SQLite offline queue</td></tr>
+          <tr><td class="k">Image AI</td><td>Gemini image editing</td><td>RMBG-1.4 + Zero-DCE self-hosted, Gemini for styled scenes</td></tr>
+          <tr><td class="k">Speech</td><td>Sarvam Saarika / Gemini</td><td>AI4Bharat IndicWhisper / Bhashini</td></tr>
+          <tr><td class="k">Listing</td><td>Claude / Gemini, JSON schema output</td><td>Same, behind the hub</td></tr>
+          <tr><td class="k">Pricing</td><td>Cost-plus + AI market estimate</td><td>Comparable retrieval + gradient-boosted model</td></tr>
+          <tr><td class="k">Hub</td><td>Node.js, Express, SQLite</td><td>PostgreSQL, object storage + CDN</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 4</span><b>Feasibility &amp; viability</b></div>
+    <div class="slide-body">
+      <h4>Risk table: change these rows</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Row</th><th>New strategy text</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Price suggestions</td><td>Cost floor (material + labour) + comparable listings band + artisan edits; never below cost.</td></tr>
+          <tr><td class="k">Limited technical access</td><td>Open API + ONDC connector; GeM via aggregator bulk upload until MoU.</td></tr>
+          <tr><td class="k">Adopting marketplaces</td><td>Replace risk with <strong>"No GSTIN / can't register"</strong> → aggregator as seller of record.</td></tr>
+          <tr><td class="k">Add: AI cost</td><td>≈ ₹3 per studio photo on Gemini's paid image model at ~$0.039 (rate as of 2026); self-hosted models cut this further. Text and speech on low-cost tiers.</td></tr>
+          <tr><td class="k">Add: Data privacy</td><td>Consent screen, DPDP Act 2023 compliant, data hosted in India, artisan can delete.</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Feasibility pipeline box</h4>
+      <p>Fix "Python, MySQL" → "React Native, Node.js, PostgreSQL". Add under Economic viability: <strong>"Operated by scheme corporation; per-artisan cost ≈ a few rupees per listing."</strong></p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 5</span><b>Impact &amp; benefits</b></div>
+    <div class="slide-body">
+      <h4>Impact bullets (replace)</h4>
+      <ul>
+        <li>Listing in under 3 minutes with zero typing</li>
+        <li>Year-round sales beyond fairs: ONDC, GeM, B2B, own storefront</li>
+        <li>English + Hindi listings buyers can find</li>
+        <li>Capture offline, auto-sync when connected</li>
+      </ul>
+      <h4>User story (corrected)</h4>
+      <p class="quote">Reema, a Dokra artisan in Odisha, photographs a brass bell and describes it in Odia. In two minutes the app makes a white-background studio photo, an English and Hindi listing, and a fair price from her material and labour cost. She listens to it, taps Publish, and the listing reaches ONDC buyers and her cluster's GeM catalogue when the network returns.</p>
+      <h4>Visuals</h4>
+      <ul>
+        <li>Before → after photo strip (raw workshop photo → studio shot)</li>
+        <li>Listing screen showing English + Hindi</li>
+        <li>Remove the earnings percentage unless sourced; use "Pilot KPIs" instead (see <a href="#kpis">impact metrics</a>).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="slide-head"><span>Slide 6</span><b>Research &amp; references</b></div>
+    <div class="slide-body">
+      <ul>
+        <li><strong>Add</strong>: ONDC Retail API spec (Beckn protocol) · GeM Seller Catalogue Management · NSFDC / NBCFDC / NSKFDC · PM-DAKSH · Bhashini · DPDP Act 2023.</li>
+        <li><strong>Keep</strong>: RMBG-1.4 &amp; Zero-DCE · AI4Bharat IndicWhisper · Noto Indic · WCAG 2.2.</li>
+        <li><strong>Reword</strong>: "Microsoft MSR LOW Literacy UI" → the actual paper title you used (or remove).</li>
+        <li><strong>Replace</strong> "[KarigarSetu]" with a real GitHub URL and a QR code to the demo video.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="differentiators">What makes this hard to beat</h3>
+  <p>Other public SIH26090 repos cover the three AI features. These are the angles most don't cover:</p>
+  <ol>
+    <li><strong>A working integration API with docs</strong>, not an arrow on a slide. Show Swagger at <code>/docs</code>.</li>
+    <li><strong>Live demo moment:</strong> tap Publish on the phone → the product appears on a mock "Government Portal" page within seconds via webhook. Build this.</li>
+    <li><strong>Seller-of-record model</strong> tied to the sponsor ministry's own corporations.</li>
+    <li><strong>Fair-to-storefront QR:</strong> directly answers the PS background about physical exhibitions.</li>
+    <li><strong>Listen-back approval</strong> in the artisan's language, so a non-reader can verify what AI wrote.</li>
+    <li><strong>Ministry impact dashboard</strong> measuring the PS's own impact goal (income).</li>
+  </ol>
+
+  <h3 id="qa">Judge questions: prepared answers</h3>
+  <details><summary>Why not just use India Handmade Bazaar, Amazon Karigar or Flipkart Samarth?</summary><div>Those are single marketplaces with their own onboarding. KarigarSetu is the catalogue layer before them: voice-first creation for low-literacy users, then publishing to many channels including those.</div></details>
+  <details><summary>Does GeM have an API you integrate with?</summary><div>We found no public third-party listing API. Today the hub generates GeM-ready bulk data and the aggregator, as the registered seller, uploads it. Direct integration is a partnership step, and the adapter is isolated so adding it doesn't change the app.</div></details>
+  <details><summary>How is the listing actually live on ONDC?</summary><div>Through a seller-side network participant. Our hub already outputs the ONDC retail catalogue shape; the connector serves it on search requests. For the finale, demonstrate on ONDC's staging environment or a partner seller app.</div></details>
+  <details><summary>The artisan has no GSTIN. Who sells?</summary><div>The aggregator — a scheme corporation, cluster or SHG — is seller of record. The artisan's identity travels with every product and payment is passed through to their bank account.</div></details>
+  <details><summary>What if AI writes something wrong?</summary><div>AI only uses facts from the photo and the artisan's words (enforced in the prompt), and every listing is read back aloud in the artisan's language before publishing. Nothing publishes without approval.</div></details>
+  <details><summary>Is the price suggestion really "machine learning"?</summary><div>Be precise. Prototype: cost floor + AI market estimate. Production: retrieval of comparable listings from channel data plus a gradient-boosted model, clamped to never go below cost. The artisan always sets the final price.</div></details>
+  <details><summary>What does it cost to run?</summary><div>Roughly ₹3 per studio photo at Gemini's paid image rate (~$0.039), plus text and speech on low-cost tiers. Self-hosting open models reduces this at scale. Operated by the corporation as part of beneficiary support.</div></details>
+  <details><summary>What about privacy of voice and photos?</summary><div>Explicit consent, India-hosted data, no voice stored after transcription unless the artisan keeps it, deletion on request — aligned with the DPDP Act 2023. Keys move to the server before release.</div></details>
+  <details><summary>How will you measure impact?</summary><div>Dashboard by district and scheme: time-to-list, live listings, orders, GMV, repeat buyers, and self-reported income at 0, 6 and 12 months.</div></details>
+</section>
+
+<!-- ============ PART C ============ -->
+<section class="part" id="part-c">
+  <div class="part-label"><span>Part C</span><h2>Project documentation</h2></div>
+
+  <h3 id="overview">Overview &amp; current status</h3>
+  <p>KarigarSetu is an Android-first app for artisans plus a backend hub that syndicates their catalogues. The table is the honest state of the code today.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Capability</th><th>Status</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Onboarding, language choice (8), profile, narrated tutorial</td><td><span class="chip built">Built</span></td><td><code>src/screens/OnboardingScreen.tsx</code></td></tr>
+      <tr><td>Voice guide on every screen, mute/unmute</td><td><span class="chip built">Built</span></td><td><code>src/components/GuideCard.tsx</code>, <code>src/services/speech.ts</code></td></tr>
+      <tr><td>Photo capture/gallery, square crop, normalise</td><td><span class="chip built">Built</span></td><td><code>src/screens/CameraScreen.tsx</code></td></tr>
+      <tr><td>AI studio: 5 looks, custom prompt, rotate/flip/crop/colour</td><td><span class="chip built">Built</span></td><td><code>src/screens/EnhanceScreen.tsx</code>, <code>src/services/image.ts</code>, <code>photoEdit.ts</code></td></tr>
+      <tr><td>Voice recording + speech-to-text (Sarvam / Gemini)</td><td><span class="chip built">Built</span></td><td><code>src/services/transcription.ts</code></td></tr>
+      <tr><td>Listing: English + Hindi + local language, highlights, category</td><td><span class="chip built">Built</span></td><td><code>src/services/listing.ts</code></td></tr>
+      <tr><td>Price: cost-plus calculator + AI market estimate</td><td><span class="chip partial">Partly built</span></td><td><code>src/screens/PriceScreen.tsx</code></td></tr>
+      <tr><td>Channel select, publish, draft, product management</td><td><span class="chip built">Built</span></td><td><code>ChannelsScreen</code>, <code>ProductDetailScreen</code></td></tr>
+      <tr><td>Sync to hub with retry on reconnect</td><td><span class="chip built">Built</span></td><td><code>src/services/api.ts</code>, <code>src/store/AppContext.tsx</code></td></tr>
+      <tr><td>Orders in app from hub</td><td><span class="chip partial">Sample data only</span></td><td><code>OrdersScreen</code> — endpoint exists</td></tr>
+      <tr><td>Hub API: partners, feed, ONDC, CSV, webhooks, orders</td><td><span class="chip built">Built</span></td><td><code>server/</code></td></tr>
+      <tr><td>Guided camera (blur/light/framing), multiple photos</td><td><span class="chip planned">Planned</span></td><td>—</td></tr>
+      <tr><td>Storefront + QR, web console, ministry dashboard</td><td><span class="chip planned">Planned</span></td><td>—</td></tr>
+      <tr><td>ONDC seller-app connector, OTP login, AI behind server</td><td><span class="chip planned">Planned</span></td><td>—</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="architecture">Architecture</h3>
+  <div class="diagram"><pre class="mermaid">
+flowchart TB
+  subgraph Phone[Artisan app · React Native / Expo]
+    UI[Screens + voice guide] --> Store[App state · on-device storage]
+    Store --> Sync[Sync service · retry on reconnect]
+  end
+  subgraph AI[AI services]
+    IMG[Image studio · Gemini image]
+    STT[Speech-to-text · Sarvam / Gemini]
+    LLM[Listing writer · Claude / Gemini]
+  end
+  UI --> IMG & STT & LLM
+  Sync -- Bearer token --> HUB
+  subgraph HUB[Market Linkage Hub · Node.js]
+    API[REST API · OpenAPI 3.1] --> DB[(Catalogue DB)]
+    API --> MEDIA[(Media store)]
+    API --> WH[Webhook dispatcher · HMAC + retries]
+    FMT[Formats · ONDC / CSV] --- API
+  end
+  WH --> P1[GeM aggregator tools]
+  WH --> P2[ONDC seller app]
+  WH --> P3[B2B buyer systems]
+  P1 & P2 & P3 -- X-API-Key pull / orders --> API
+  </pre></div>
+  <p>In production the AI calls move behind the hub so no provider keys ship in the app, and the database becomes PostgreSQL with media on object storage.</p>
+
+  <h3 id="flow">Artisan flow</h3>
+  <ol>
+    <li><strong>Photo.</strong> Camera or gallery, square crop, normalised to ≤1600 px JPEG, copied into app storage.</li>
+    <li><strong>Studio.</strong> Plain white generates automatically. Other looks on tap: In a home, Top view, Close-up, Festive gift. Hold the photo to compare with the original. Advanced (collapsed): write a custom scene; rotate, flip, crop (1:1, 4:5, 4:3); brightness, contrast, colour, warmth.</li>
+    <li><strong>Voice.</strong> Tap to record, speak in own language, transcript editable.</li>
+    <li><strong>Listing.</strong> AI writes English title + description, Hindi title + description, 3 highlights, category, and a version in the artisan's language that is read aloud.</li>
+    <li><strong>Price.</strong> Material cost, hours × hourly rate, profit 20/30/40 %. AI market estimate shown alongside. Artisan sets final price and stock.</li>
+    <li><strong>Publish.</strong> Choose ONDC / GeM / B2B. Publish or save draft. Listing syncs to the hub.</li>
+    <li><strong>Manage.</strong> Edit price, stock, channels; delist. Changes sync. Orders move New → Accepted → Packed → Shipped → Delivered.</li>
+  </ol>
+
+  <h3 id="ai">AI pipeline</h3>
+  <h4>Image studio</h4>
+  <ul>
+    <li>Model: <code>gemini-2.5-flash-image</code> (configurable). remove.bg fallback for white only.</li>
+    <li>Prompt rules: remove background, hands and clutter; place in the chosen scene; <strong>keep the product exactly as is</strong> (shape, colours, patterns, weave, imperfections); correct lighting and white balance; square output, no text.</li>
+    <li>Custom prompts are wrapped in the same product-fidelity rules.</li>
+    <li>Colour edits use a Skia colour matrix, applied live and baked to JPEG on "Use this photo".</li>
+  </ul>
+  <h4>Speech and listing</h4>
+  <ul>
+    <li>Speech-to-text: Sarvam <code>saarika:v2.5</code> when configured, otherwise Gemini audio transcription in the artisan's script.</li>
+    <li>Listing: structured JSON schema output (title, description, title_hi, description_hi, local_description, highlights, category, suggested price, price reason). System prompt forbids inventing materials, sizes or certifications and asks for SEO-friendly titles.</li>
+    <li>No network or no key: listing built from the artisan's own words so the flow never blocks.</li>
+  </ul>
+
+  <h3 id="pricing">Pricing engine</h3>
+  <p><strong>Today</strong> <span class="chip partial">Partly built</span>: suggested price = round₁₀((material + hours × rate) × (1 + profit %)). The AI adds a market estimate with a one-line reason in the artisan's language.</p>
+  <p><strong>Target design</strong> <span class="chip planned">Planned</span>:</p>
+  <ol>
+    <li><strong>Cost floor</strong> — material + labour. Never suggest below this.</li>
+    <li><strong>Comparable band</strong> — embed the photo and title; retrieve similar handmade items from channel feeds and completed orders; take the 25th–75th percentile price.</li>
+    <li><strong>Model</strong> — gradient-boosted regressor on category, craft, material, size, hours, region, channel and image embedding; trained on hub order data as it accumulates.</li>
+    <li><strong>Output</strong> — a range and a recommended point, clamped to ≥ cost floor, with a spoken reason. Artisan decides.</li>
+  </ol>
+
+  <h3 id="api">Market Linkage API</h3>
+  <p>Base: <code>/v1</code>. Interactive docs at <code>/docs</code>, spec at <code>/openapi.json</code>. Source: <code>server/</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Method &amp; path</th><th>Auth</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /v1/partners</code></td><td>X-Admin-Key</td><td>Issue an API key to a platform (channel-scoped or <code>*</code>)</td></tr>
+      <tr><td><code>GET /v1/catalog</code></td><td>X-API-Key</td><td>Published products; <code>updatedSince</code> for incremental sync (includes delisted); cursor pagination; filters</td></tr>
+      <tr><td><code>GET /v1/catalog/ondc</code></td><td>X-API-Key</td><td>Same feed in ONDC retail catalogue shape, grouped by artisan provider</td></tr>
+      <tr><td><code>GET /v1/catalog/export.csv</code></td><td>X-API-Key</td><td>Bulk sheet with EN + HI columns, HSN, artisan details (UTF-8 BOM)</td></tr>
+      <tr><td><code>GET /v1/catalog/{id}</code></td><td>X-API-Key</td><td>One product</td></tr>
+      <tr><td><code>POST /v1/webhooks</code></td><td>X-API-Key</td><td>Subscribe to <code>product.published</code>, <code>product.updated</code>, <code>product.unpublished</code>, <code>order.status_changed</code></td></tr>
+      <tr><td><code>GET /v1/webhooks/{id}/deliveries</code></td><td>X-API-Key</td><td>Delivery log</td></tr>
+      <tr><td><code>POST /v1/orders</code></td><td>X-API-Key</td><td>Send an order to the artisan; idempotent on <code>externalOrderId</code>; checks and decrements stock</td></tr>
+      <tr><td><code>GET /v1/orders/{id}</code></td><td>X-API-Key</td><td>Order status</td></tr>
+      <tr><td><code>POST /v1/artisans</code></td><td>—</td><td>Register artisan; returns bearer token once</td></tr>
+      <tr><td><code>GET · PATCH /v1/artisans/me</code></td><td>Bearer</td><td>Profile incl. state, district, pincode, Udyam, scheme, beneficiary ID</td></tr>
+      <tr><td><code>POST /v1/me/products</code></td><td>Bearer</td><td>Create or update by <code>clientId</code> (safe offline retries); images as base64 or URLs</td></tr>
+      <tr><td><code>PATCH · DELETE /v1/me/products/{id}</code></td><td>Bearer</td><td>Edit; delete = delist everywhere (webhook sent)</td></tr>
+      <tr><td><code>GET /v1/me/orders</code>, <code>PATCH /v1/me/orders/{id}</code></td><td>Bearer</td><td>Artisan's orders; advance status one step (or cancel)</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Webhook verification</h4>
+<pre class="code">X-KarigarSetu-Event: product.published
+X-KarigarSetu-Delivery: evt_…
+X-KarigarSetu-Signature: t=1789575646,v1=76ebdc1e…
+
+v1 = HMAC_SHA256(secret, "&lt;t&gt;.&lt;raw body&gt;")   // reject if t older than 5 minutes
+Retries on non-2xx: after 30 s, 5 min, 30 min</pre>
+  <h4>Catalogue item (every format derives from this)</h4>
+<pre class="code">{
+  "id": "prd_K_zc0-v1nHCo", "sku": "KS-K_ZC0-V1", "status": "published",
+  "title": { "en": "Hand-painted Pattachitra, Krishna", "hi": "हाथ से बनी पट्टचित्र" },
+  "description": { "en": "…", "hi": "…", "local": { "language": "odia", "text": "…" } },
+  "highlights": ["…"], "category": "Home Decor", "hsnCode": "97019100", "materials": "cotton cloth, natural colours",
+  "price": { "currency": "INR", "value": 1800, "mrp": 1800 }, "stock": 3,
+  "images": ["https://…/media/img_….jpg"], "channels": ["ONDC", "GeM"],
+  "attributes": { "handmade": true, "countryOfOrigin": "IND" },
+  "artisan": { "id": "art_…", "name": "Ramesh Behera", "craft": "Pattachitra",
+               "state": "Odisha", "district": "Puri", "pincode": "752001", "udyamNumber": null, "scheme": "NSFDC" },
+  "createdAt": "…", "updatedAt": "…"
+}</pre>
+
+  <h3 id="data">Data model</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Table</th><th>Key fields</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="k">artisans</td><td>id, token_hash, name, craft, language, phone, state, district, pincode, udyam_number, scheme, beneficiary_id</td><td>Token stored as SHA-256 hash only</td></tr>
+      <tr><td class="k">products</td><td>id, artisan_id, client_id, title, title_hi, description, description_hi, local_description, highlights, category, hsn_code, materials, price, mrp, stock, images, channels, status, cost_breakdown</td><td>Unique (artisan_id, client_id) for idempotent sync; status draft / published / unpublished</td></tr>
+      <tr><td class="k">partners</td><td>id, name, channel, key_hash</td><td>Channel scoping limits what each platform sees</td></tr>
+      <tr><td class="k">webhooks</td><td>id, partner_id, url, events, secret, active</td><td>HTTPS public URLs only in production</td></tr>
+      <tr><td class="k">webhook_deliveries</td><td>id, webhook_id, event, payload, attempts, status, last_error</td><td>Pending deliveries resume after restart</td></tr>
+      <tr><td class="k">orders</td><td>id, partner_id, external_order_id, product_id, artisan_id, channel, qty, unit_price, total, buyer_*, status</td><td>Unique (partner_id, external_order_id)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="offline">Offline &amp; sync</h3>
+  <ul>
+    <li>All products, orders, profile and settings persist on the phone; the app works without network for browsing and editing.</li>
+    <li>Publishing marks a product <em>pending</em> and pushes to the hub. Failure marks <em>failed</em>; on reconnect every pending or failed product is re-sent.</li>
+    <li>Re-sends use the local id as <code>clientId</code>, so the hub updates rather than duplicates.</li>
+    <li>Product detail shows sync state: sending / sent to marketplaces / will retry.</li>
+    <li><span class="chip planned">Planned</span> queue photo studio and listing generation while offline and run them on reconnect.</li>
+  </ul>
+
+  <h3 id="security">Security &amp; privacy</h3>
+  <ul>
+    <li>Partner keys, artisan tokens and admin key checked server-side; secrets stored hashed; admin key compared in constant time.</li>
+    <li>Webhooks signed with per-subscription secrets; SSRF guard rejects private hosts in production.</li>
+    <li>Input validated with Zod; image type and size limits (8 MB).</li>
+    <li class="risk-li"><span class="chip risk">Before release</span> AI provider keys are currently bundled in the app for the prototype — move all AI calls behind the hub.</li>
+    <li><span class="chip planned">Planned</span> phone OTP login, consent screen, India-hosted storage, data deletion on request (DPDP Act 2023).</li>
+  </ul>
+
+  <h3 id="run">Run it</h3>
+<pre class="code"># App
+cp .env.example .env        # EXPO_PUBLIC_GEMINI_API_KEY, EXPO_PUBLIC_API_URL=http://&lt;LAN-IP&gt;:8080
+npm install
+npx expo start -c
+
+# Hub (Node 22.5+)
+cd server
+cp .env.example .env        # set ADMIN_API_KEY
+npm install
+npm run dev                 # http://localhost:8080/docs
+
+# Give a platform access
+npm run seed:partner -- "GeM Aggregator" GeM</pre>
+
+  <h3 id="roadmap">Roadmap to the finale</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Priority</th><th>Item</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="k">P0</td><td>Mock "Government Portal" page consuming the hub live</td><td>The demo moment: publish on phone → appears on portal</td></tr>
+      <tr><td class="k">P0</td><td>Public storefront + QR per artisan</td><td>Year-round channel beyond fairs; no permission needed</td></tr>
+      <tr><td class="k">P0</td><td>Orders screen reads <code>/v1/me/orders</code></td><td>Closes the loop end to end</td></tr>
+      <tr><td class="k">P1</td><td>Move AI calls behind hub; OTP login</td><td>Security question judges will ask</td></tr>
+      <tr><td class="k">P1</td><td>Listing attributes: dimensions, weight, material, HSN, 3–5 photos</td><td>GeM/ONDC require them</td></tr>
+      <tr><td class="k">P1</td><td>Guided camera: blur, light and framing checks</td><td>PS: "built-in camera module"</td></tr>
+      <tr><td class="k">P1</td><td>Comparable-price band from hub data</td><td>Makes "market trends" real</td></tr>
+      <tr><td class="k">P2</td><td>ONDC connector on staging</td><td>Strongest technical proof</td></tr>
+      <tr><td class="k">P2</td><td>Aggregator console + ministry dashboard</td><td>Operator story and impact measurement</td></tr>
+      <tr><td class="k">P2</td><td>PostgreSQL, object storage, Docker, tests</td><td>Scalability questions</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="kpis">Impact metrics (pilot targets, not results)</h3>
+  <div class="kpis">
+    <div class="kpi"><b>&lt; 3 min</b><span>photo to published listing</span></div>
+    <div class="kpi"><b>0</b><span>words typed by the artisan</span></div>
+    <div class="kpi"><b>2 + 1</b><span>languages per listing: EN, HI, own</span></div>
+    <div class="kpi"><b>4</b><span>channels from one catalogue</span></div>
+    <div class="kpi"><b>12 mo</b><span>income tracked by district &amp; scheme</span></div>
+  </div>
+  <p>Measure in a pilot of one cluster: time-to-list, listings per artisan, % listings with an order in 90 days, online share of sales, repeat buyers, self-reported monthly income at 0/6/12 months.</p>
+
+  <footer>KarigarSetu · Team Executors · SIH 2026 · PS SIH26090. Channel requirements (ONDC, GeM) and model pricing should be re-verified before submission.</footer>
+</section>
+</main>
+</div>

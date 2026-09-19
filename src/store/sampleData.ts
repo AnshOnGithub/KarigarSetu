@@ -60,3 +60,7 @@ export function sampleOrders(now = Date.now()): Order[] {
     { id: 'KS-1031', productTitle: pot.title, image: pot.image, qty: 10, total: 6500, buyer: 'District Office', city: 'Bhubaneswar', channel: 'GeM', status: 'delivered', createdAt: now - 4 * DAY },
   ];
 }
+
+/** Sample rows carry fixed ids so the Settings switch can take them back out again. */
+export const isSampleProduct = (id: string) => id.startsWith('sample-');
+export const isSampleOrder = (id: string) => sampleOrders(0).some((o) => o.id === id);
