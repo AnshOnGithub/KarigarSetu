@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Easing, Pressable, View } from 'react-native';
-import { Check, RotateCcw, ScanSearch, Store, Tag } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Check, ChevronDown, RotateCcw } from 'lucide-react-native';
 import { twMerge } from 'tailwind-merge';
+import type { StringKey } from '@/i18n/strings';
 import { useApp } from '@/store/AppContext';
 import { services } from '@/config';
-import type { StringKey } from '@/i18n/strings';
 import { researchPrice, type MarketResearch, type ResearchStage } from '@/services/marketResearch';
 import { Button } from '@/components/Button';
 import { FlowProgress } from '@/components/FlowProgress';
@@ -20,68 +20,13 @@ const PROFIT_OPTIONS = [20, 30, 40];
 const toNumber = (value: string) => Math.max(0, Number(value.replace(/[^0-9.]/g, '')) || 0);
 const digits = (value: string) => value.replace(/[^0-9]/g, '');
 
-const STEPS: { stage: ResearchStage; label: StringKey; done: StringKey; icon: typeof ScanSearch }[] = [
-  { stage: 'analysis', label: 'researchStep1', done: 'researchStep1Done', icon: ScanSearch },
-  { stage: 'market', label: 'researchStep2', done: 'researchStep2Done', icon: Store },
-  { stage: 'verdict', label: 'researchStep3', done: 'researchStep3Done', icon: Tag },
+const STEPS: { stage: ResearchStage; label: StringKey; done: StringKey }[] = [
+  { stage: 'analysis', label: 'researchStep1', done: 'researchStep1Done' },
+  { stage: 'market', label: 'researchStep2', done: 'researchStep2Done' },
+  { stage: 'verdict', label: 'researchStep3', done: 'researchStep3Done' },
 ];
 
 type Progress = Partial<MarketResearch>;
-
-/** One research step: spinner while it runs, then its findings. */
-function ResearchStep({
-  index,
-  active,
-  complete,
-  label,
-  doneLabel,
-  icon: Icon,
-  children,
-}: {
-  index: number;
-  active: boolean;
-  complete: boolean;
-  label: string;
-  doneLabel: string;
-  icon: typeof ScanSearch;
-  children?: React.ReactNode;
-}) {
-  const fade = useRef(new Animated.Value(complete ? 1 : 0)).current;
-
-  useEffect(() => {
-    if (!complete) return;
-    Animated.timing(fade, { toValue: 1, duration: 320, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
-  }, [complete, fade]);
-
-  return (
-    <View className="flex-row gap-3">
-      <View className="items-center">
-        <View
-          className={twMerge(
-            'w-8 h-8 rounded-full items-center justify-center',
-            complete ? 'bg-leaf-500' : active ? 'bg-gold-100' : 'bg-paper-200'
-          )}
-        >
-          {complete ? (
-            <Check size={16} color={colors.white} strokeWidth={3} />
-          ) : active ? (
-            <ActivityIndicator size="small" color={colors.gold600} />
-          ) : (
-            <Icon size={15} color={colors.ink400} />
-          )}
-        </View>
-        {index < STEPS.length - 1 && <View className={twMerge('w-0.5 flex-1 my-1', complete ? 'bg-leaf-300' : 'bg-paper-200')} />}
-      </View>
-
-      <View className="flex-1 pb-4">
-        <Txt variant="bodySm" weight="semibold" className={complete ? 'text-ink-800' : active ? 'text-gold-700' : 'text-ink-400'}>
-          {complete ? doneLabel : label}
-        </Txt>
-        {complete && children ? <Animated.View style={{ opacity: fade }}>{children}</Animated.View> : null}
-      </View>
-    </View>
-  );
-}
 
 export function PriceScreen() {
   const { t, language, profile, draft, setDraft, navigate } = useApp();
@@ -90,6 +35,7 @@ export function PriceScreen() {
   const [rate, setRate] = useState('80');
   const [profitPct, setProfitPct] = useState(30);
   const [customPrice, setCustomPrice] = useState(draft.price ? String(draft.price) : '');
+  const [costOpen, setCostOpen] = useState(false);
   const [stock, setStock] = useState(String(draft.stock || 1));
 
   const [progress, setProgress] = useState<Progress>(() => draft.marketResearch ?? {});
@@ -151,8 +97,6 @@ export function PriceScreen() {
   const hasCost = breakdown.suggested > 0;
   const finalPrice = customPrice ? toNumber(customPrice) : breakdown.suggested || verdict?.recommended || draft.aiPrice || 0;
   const total = breakdown.material + breakdown.labour + breakdown.margin || 1;
-  const stageIndex = STEPS.findIndex(({ stage }) => !progress[stage]);
-  const showResearch = services.ai && (researching || researchFailed || Boolean(progress.analysis));
 
   const next = () => {
     setDraft({
@@ -177,68 +121,31 @@ export function PriceScreen() {
         {t.priceTitle}
       </Txt>
 
-      {showResearch && (
-        <View className="mt-4 rounded-2xl border border-paper-200 bg-white p-4">
-          <Txt variant="heading" className="mb-4">
-            {t.researchTitle}
-          </Txt>
-
-          {STEPS.map(({ stage, label, done, icon }, index) => (
-            <ResearchStep
-              key={stage}
-              index={index}
-              active={researching && index === (stageIndex === -1 ? STEPS.length : stageIndex)}
-              complete={Boolean(progress[stage])}
-              label={t[label]}
-              doneLabel={t[done]}
-              icon={icon}
-            >
-              {stage === 'analysis' && progress.analysis && (
-                <View className="mt-1.5 gap-0.5">
-                  <Txt variant="bodySm" latin className="text-ink-800">
-                    {progress.analysis.product}
-                  </Txt>
-                  <Txt variant="caption" latin>
-                    {[progress.analysis.craft, progress.analysis.material, progress.analysis.size].filter(Boolean).join(' · ')}
-                  </Txt>
+      {(researching || Boolean(progress.analysis)) && (
+        <View className="mt-4 gap-3 rounded-2xl border border-paper-200 bg-white p-4">
+          {STEPS.map(({ stage, label, done }, index) => {
+            const complete = Boolean(progress[stage]);
+            const active = researching && !complete && STEPS.findIndex((step) => !progress[step.stage]) === index;
+            return (
+              <View key={stage} className="flex-row items-center gap-3">
+                <View className={twMerge('w-7 h-7 rounded-full items-center justify-center', complete ? 'bg-leaf-500' : active ? 'bg-gold-100' : 'bg-paper-200')}>
+                  {complete ? <Check size={15} color={colors.white} strokeWidth={3} /> : active ? <ActivityIndicator size="small" color={colors.gold600} /> : null}
                 </View>
-              )}
-
-              {stage === 'market' && progress.market && (
-                <View className="mt-2 gap-1.5">
-                  {progress.market.comparables.map((item) => (
-                    <View key={`${item.description}-${item.price}`} className="flex-row items-center gap-2">
-                      <View className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-                      <Txt variant="caption" latin className="flex-1 text-ink-700" numberOfLines={1}>
-                        {item.description} · {item.channel}
-                      </Txt>
-                      <Txt variant="caption" latin weight="semibold" className="text-ink-900">
-                        {formatINR(item.price)}
-                      </Txt>
-                    </View>
-                  ))}
-                  <Txt variant="caption" className="mt-1 text-ink-600">
-                    {t.marketBand} {formatINR(progress.market.low)} – {formatINR(progress.market.high)}
-                  </Txt>
-                </View>
-              )}
-
-              {stage === 'verdict' && progress.verdict && (
-                <Txt variant="bodySm" className="mt-1.5 text-ink-700">
-                  {progress.verdict.reasonLocal || progress.verdict.reason}
+                <Txt variant="bodySm" weight="semibold" className={complete ? 'text-ink-800' : active ? 'text-gold-700' : 'text-ink-400'}>
+                  {complete ? t[done] : t[label]}
                 </Txt>
-              )}
-            </ResearchStep>
-          ))}
+              </View>
+            );
+          })}
+        </View>
+      )}
 
-          {researchFailed && (
-            <View className="flex-row items-center gap-3 rounded-xl bg-clay-50 px-3 py-2.5">
-              <Txt variant="bodySm" className="flex-1 text-clay-600">
-                {t.researchFailed}
-              </Txt>
-              <Button label={t.retry} size="sm" variant="secondary" icon={RotateCcw} onPress={run} />
-            </View>
-          )}
+      {researchFailed && (
+        <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-clay-50 px-4 py-3">
+          <Txt variant="bodySm" className="flex-1 text-clay-600">
+            {t.researchFailed}
+          </Txt>
+          <Button label={t.retry} size="sm" variant="secondary" icon={RotateCcw} onPress={run} />
         </View>
       )}
 
@@ -259,21 +166,41 @@ export function PriceScreen() {
             <Txt variant="bodySm" className="mt-1 text-leaf-100">
               {t.marketBand} {formatINR(verdict.low)} – {formatINR(verdict.high)}
             </Txt>
-            {toNumber(customPrice) !== verdict.recommended && (
-              <Pressable
-                onPress={() => setCustomPrice(String(verdict.recommended))}
-                className="self-start mt-3 h-10 px-4 rounded-full bg-gold-400 items-center justify-center active:bg-gold-500"
-              >
-                <Txt variant="bodySm" weight="semibold" className="text-leaf-900">
-                  {t.useThisPrice}
-                </Txt>
-              </Pressable>
-            )}
           </View>
         </HeroBand>
       )}
 
-      <View className="gap-3 mt-5">
+      <View className="flex-row gap-3 mt-5">
+        <Field
+          className="flex-[1.4]"
+          label={t.yourPrice}
+          prefix="₹"
+          keyboardType="number-pad"
+          value={customPrice}
+          placeholder={String(breakdown.suggested || verdict?.recommended || '')}
+          onChangeText={(v) => setCustomPrice(digits(v))}
+          latin
+        />
+        <Field className="flex-1" label={t.stockLabel} keyboardType="number-pad" value={stock} onChangeText={(v) => setStock(digits(v))} latin />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: costOpen }}
+        onPress={() => setCostOpen((open) => !open)}
+        className="mt-5 flex-row items-center justify-between rounded-2xl border border-paper-200 bg-white px-4 py-3.5 active:bg-paper-100"
+      >
+        <Txt variant="body" weight="semibold" className="text-ink-800">
+          {t.yourCost}
+        </Txt>
+        <View style={{ transform: [{ rotate: costOpen ? '180deg' : '0deg' }] }}>
+          <ChevronDown size={20} color={colors.ink500} />
+        </View>
+      </Pressable>
+
+      {costOpen && (
+        <>
+      <View className="gap-3 mt-3">
         <Field label={t.materialCost} prefix="₹" keyboardType="number-pad" value={material} onChangeText={(v) => setMaterial(digits(v))} placeholder="0" latin />
         <View className="flex-row gap-3">
           <Field className="flex-1" label={t.hoursWorked} keyboardType="decimal-pad" value={hours} onChangeText={setHours} placeholder="0" latin />
@@ -334,19 +261,8 @@ export function PriceScreen() {
         </View>
       )}
 
-      <View className="flex-row gap-3 mt-5">
-        <Field
-          className="flex-[1.4]"
-          label={t.yourPrice}
-          prefix="₹"
-          keyboardType="number-pad"
-          value={customPrice}
-          placeholder={String(breakdown.suggested || verdict?.recommended || '')}
-          onChangeText={(v) => setCustomPrice(digits(v))}
-          latin
-        />
-        <Field className="flex-1" label={t.stockLabel} keyboardType="number-pad" value={stock} onChangeText={(v) => setStock(digits(v))} latin />
-      </View>
+        </>
+      )}
 
       <GuideCard guide="price" className="mt-5" />
     </Screen>
